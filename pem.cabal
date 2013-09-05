@@ -36,6 +36,8 @@ Test-Suite test-pem
                    , bytestring
                    , test-framework >= 0.3.3
                    , test-framework-quickcheck2
+                   , test-framework-hunit
+                   , HUnit
                    , QuickCheck >= 2.4.0.1
                    , pem
 
