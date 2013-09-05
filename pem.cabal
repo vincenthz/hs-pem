@@ -20,7 +20,6 @@ Library
                    , mtl
                    , bytestring
                    , attoparsec
-                   , cereal
                    , base64-bytestring
   Exposed-modules:   Data.PEM
   Other-modules:     Data.PEM.Parser

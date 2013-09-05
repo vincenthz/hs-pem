@@ -7,8 +7,7 @@
 -- Portability : portable
 --
 module Data.PEM.Writer
-    ( pemWriteBuilder
-    , pemWriteLBS
+    ( pemWriteLBS
     , pemWriteBS
     ) where
 
@@ -18,33 +17,32 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString.Base64 as Base64
-import Data.Serialize.Builder
-import Data.Monoid
-import Data.List
 
 -- | write a PEM structure to a builder
-pemWriteBuilder :: PEM -> Builder
-pemWriteBuilder pem = mconcat $ intersperse eol $ concat ([begin]:header:section:[end]:[[empty]])
-    where begin   = mconcat $ map fromByteString ["-----BEGIN ", sectionName, "-----" ]
-          end     = mconcat $ map fromByteString ["-----END ", sectionName, "-----" ]
-          section = map fromByteString $ (splitChunks $ Base64.encode $ pemContent pem)
+pemWrite :: PEM -> L.ByteString
+pemWrite pem = L.fromChunks $ ([begin,header]++section++[end])
+    where begin   = B.concat ["-----BEGIN ", sectionName, "-----\n"]
+          end     = B.concat ["-----END ", sectionName, "-----\n" ]
+          section :: [ByteString]
+          section = map encodeLine $ splitChunks $ pemContent pem
+          header :: ByteString
           header  = if null $ pemHeader pem
-                        then []
-                        else concatMap toHeader (pemHeader pem) ++ [empty]
-          toHeader (k,v) = [ mconcat $ map fromByteString [ bk, ":", v ] ]
-                where bk = BC.pack k
+                        then B.empty
+                        else B.concat ((concatMap toHeader (pemHeader pem)) ++ ["\n"])
+          toHeader :: (String, ByteString) -> [ByteString]
+          toHeader (k,v) = [ BC.pack k, ":", v, "\n" ]
           -- expect only ASCII. need to find a type to represent it.
           sectionName = BC.pack $ pemName pem
+          encodeLine l = Base64.encode l `B.append` "\n"
 
           splitChunks b
-                  | B.length b > 64 = let (x,y) = B.splitAt 64 b in x : splitChunks y
+                  | B.length b > 48 = let (x,y) = B.splitAt 48 b in x : splitChunks y
                   | otherwise       = [b]
-          eol = fromByteString $ B.singleton 0x0a
 
 -- | convert a PEM structure to a bytestring
 pemWriteBS :: PEM -> ByteString
-pemWriteBS = toByteString . pemWriteBuilder
+pemWriteBS = B.concat . L.toChunks . pemWrite
 
 -- | convert a PEM structure to a lazy bytestring
 pemWriteLBS :: PEM -> L.ByteString
-pemWriteLBS = toLazyByteString . pemWriteBuilder
+pemWriteLBS = pemWrite

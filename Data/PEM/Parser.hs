@@ -31,8 +31,6 @@ import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString.Base64 as Base64
 
 import Prelude hiding (takeWhile)
-import Data.Serialize.Builder
-import Data.Monoid
 
 -- | parser to get PEM sections
 pemParser :: Parser [PEM]
@@ -47,7 +45,7 @@ pemParser = many contextSection
                -- begin marker has already been eaten by contextSection
                name <- takeWhile (/= 0x2d) <* (string "-----" *> space)
                l    <- manyTill eatLine endMarker
-               let content = toByteString $ mconcat $ map (fromByteString . Base64.decodeLenient) l
+               let content = Base64.decodeLenient $ BC.concat l
                return $ PEM { pemName = BC.unpack name, pemHeader = [], pemContent = content }
 
 -- | parse a PEM content using a strict bytestring
