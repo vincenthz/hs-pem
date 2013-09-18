@@ -19,6 +19,8 @@ main = defaultMain tests
 tests :: [Test]
 tests =
     [ testGroup "units" $ testUnits
+    , testDecodingMultiple
+    , testUnmatchingNames
     , testProperty "marshall" testMarshall
     ]
 
@@ -37,6 +39,36 @@ testUnits = map (\(i, (p,bs)) -> testCase (show i) (pemWriteBS p @=? BC.pack bs)
                 , "AwMDAwMDAwMDAwMD"
                 , "-----END xxx-----"
                 ]
+
+testDecodingMultiple = testCase ("multiple pems") (pemParseBS content @=? Right expected)
+  where expected = [ PEM { pemName = "marker", pemHeader = [], pemContent = B.replicate 12 3 }
+                   , PEM { pemName = "marker2", pemHeader = [], pemContent = B.replicate 64 0 }
+                   ]
+        content = BC.pack $ unlines
+            [ "some text that is not related to PEM"
+            , "and is just going to be ignored by the PEM parser."
+            , ""
+            , "even empty lines should be skip until the rightful marker"
+            , "-----BEGIN marker-----"
+            , "AwMDAwMDAwMDAwMD"
+            , "-----END marker-----"
+            , "some middle text"
+            , "-----BEGIN marker2-----"
+            , "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            , "AAAAAAAAAAAAAAAAAAAAAA=="
+            , "-----END marker2-----"
+            , "and finally some trailing text."
+            ]
+
+testUnmatchingNames = testCase "unmatching name" (let r = pemParseBS content in case r of
+                                                                                 Left _ -> True @=? True
+                                                                                 _      -> r @=? Left "")
+  where content = BC.pack $ unlines
+            [ "-----BEGIN marker-----"
+            , "AAAA"
+            , "-----END marker2-----"
+            ]
+
 testMarshall pems = readPems == Right pems
     where readPems = pemParseBS writtenPems
           writtenPems = B.concat (map pemWriteBS pems)
