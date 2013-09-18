@@ -19,7 +19,6 @@ Library
   Build-Depends:     base >= 3 && < 5
                    , mtl
                    , bytestring
-                   , attoparsec
                    , base64-bytestring
   Exposed-modules:   Data.PEM
   Other-modules:     Data.PEM.Parser
