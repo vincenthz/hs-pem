@@ -1,5 +1,5 @@
 Name:                pem
-Version:             0.2.1
+Version:             0.2.2
 Description:         Privacy Enhanced Mail (PEM) format reader and writer.
 License:             BSD3
 License-file:        LICENSE
