@@ -26,7 +26,9 @@ import qualified Data.ByteString.Base64.Lazy as Base64
 
 import Data.PEM.Types
 
-parseOnePEM :: [L.ByteString] -> Either (Maybe String) (PEM, [L.ByteString])
+type Line = L.ByteString
+
+parseOnePEM :: [Line] -> Either (Maybe String) (PEM, [Line])
 parseOnePEM = findPem
   where beginMarker = "-----BEGIN "
         endMarker   = "-----END "
@@ -72,7 +74,7 @@ parseOnePEM = findPem
              in if x1 == prefix then Just x2 else Nothing
 
 -- | parser to get PEM sections
-pemParse :: [L.ByteString] -> [Either String PEM]
+pemParse :: [Line] -> [Either String PEM]
 pemParse l
     | null l    = []
     | otherwise = case parseOnePEM l of
@@ -86,6 +88,9 @@ pemParseBS b = pemParseLBS $ L.fromChunks [b]
 
 -- | parse a PEM content using a dynamic bytestring
 pemParseLBS :: L.ByteString -> Either String [PEM]
-pemParseLBS bs = case partitionEithers $ pemParse $ LC.lines bs of
+pemParseLBS bs = case partitionEithers $ pemParse $ map unCR $ LC.lines bs of
                     (x:_,_   ) -> Left x
                     ([] ,pems) -> Right pems
+  where unCR b | L.length b > 0 && L.last b == cr = L.init b
+               | otherwise                        = b
+        cr = fromIntegral $ fromEnum '\r'
