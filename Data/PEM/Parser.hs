@@ -55,9 +55,9 @@ parseOnePEM = findPem
             case lbs of
                 []     -> Left $ Just "invalid PEM: no end marker found"
                 (l:ls) -> case endMarker `prefixEat` l of
-                              Nothing ->
-                                  let content = Base64.decodeLenient l
-                                   in getPemContent name hdrs (content : contentLines) ls
+                              Nothing -> case Base64.decode l of
+                                Left e        -> Left $ Just e
+                                Right content -> getPemContent name hdrs (content : contentLines) ls
                               Just n  -> getPemName (finalizePem name hdrs contentLines) n ls
         finalizePem name hdrs contentLines nameEnd lbs
             | nameEnd /= name = Left $ Just "invalid PEM: end name doesn't match start name"
