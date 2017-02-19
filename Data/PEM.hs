@@ -8,10 +8,10 @@
 -- Read and write PEM files
 --
 module Data.PEM
-	( module Data.PEM.Types
+    ( module Data.PEM.Types
     , module Data.PEM.Writer
     , module Data.PEM.Parser
-	) where
+    ) where
 
 import Data.PEM.Types
 import Data.PEM.Writer
