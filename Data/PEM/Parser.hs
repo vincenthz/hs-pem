@@ -11,7 +11,7 @@
 -- A PEM contains contains from one to many PEM sections.
 -- Each section contains an optional key-value pair header
 -- and a binary content encoded in base64.
--- 
+--
 module Data.PEM.Parser
     ( pemParseBS
     , pemParseLBS
@@ -22,9 +22,10 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString.Lazy.Char8 as LC
-import qualified Data.ByteString.Base64.Lazy as Base64
 
 import Data.PEM.Types
+import Data.ByteArray.Encoding (Base(Base64), convertFromBase)
+import qualified Data.ByteArray as BA
 
 type Line = L.ByteString
 
@@ -51,23 +52,23 @@ parseOnePEM = findPem
                 getPemHeaderLoop (r:rs) = -- FIXME doesn't properly parse headers yet
                     Right ([], r:rs)
 
+        getPemContent :: String -> [(String,ByteString)] -> [BC.ByteString] -> [L.ByteString] -> Either (Maybe String) (PEM, [L.ByteString])
         getPemContent name hdrs contentLines lbs =
             case lbs of
                 []     -> Left $ Just "invalid PEM: no end marker found"
                 (l:ls) -> case endMarker `prefixEat` l of
                               Nothing ->
-                                  let content = Base64.decodeLenient l
-                                   in getPemContent name hdrs (content : contentLines) ls
+                                    case convertFromBase Base64 $ L.toStrict l of
+                                        Left err      -> Left $ Just ("invalid PEM: decoding failed: " ++ err)
+                                        Right content -> getPemContent name hdrs (content : contentLines) ls
                               Just n  -> getPemName (finalizePem name hdrs contentLines) n ls
         finalizePem name hdrs contentLines nameEnd lbs
             | nameEnd /= name = Left $ Just "invalid PEM: end name doesn't match start name"
             | otherwise       =
                 let pem = PEM { pemName    = name
                               , pemHeader  = hdrs
-                              , pemContent = toSBS $ L.concat $ reverse contentLines }
+                              , pemContent = BA.concat $ reverse contentLines }
                  in Right (pem, lbs)
-
-        toSBS = BC.concat . L.toChunks
 
         prefixEat prefix x =
             let (x1, x2) = L.splitAt (L.length prefix) x

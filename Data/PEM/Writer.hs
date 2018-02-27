@@ -16,7 +16,7 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy as L
-import qualified Data.ByteString.Base64 as Base64
+import           Data.ByteArray.Encoding (Base(Base64), convertToBase)
 
 -- | write a PEM structure to a builder
 pemWrite :: PEM -> L.ByteString
@@ -33,7 +33,7 @@ pemWrite pem = L.fromChunks $ ([begin,header]++section++[end])
           toHeader (k,v) = [ BC.pack k, ":", v, "\n" ]
           -- expect only ASCII. need to find a type to represent it.
           sectionName = BC.pack $ pemName pem
-          encodeLine l = Base64.encode l `B.append` "\n"
+          encodeLine l = convertToBase Base64 l `B.append` "\n"
 
           splitChunks b
                   | B.length b > 48 = let (x,y) = B.splitAt 48 b in x : splitChunks y
