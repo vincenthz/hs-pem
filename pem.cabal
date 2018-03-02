@@ -18,6 +18,7 @@ Library
   Build-Depends:     base >= 3 && < 5
                    , mtl
                    , bytestring
+                   , basement
                    , memory
   Exposed-modules:   Data.PEM
   Other-modules:     Data.PEM.Parser
