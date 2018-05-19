@@ -43,6 +43,7 @@ testUnits = map (\(i, (p,bs)) -> testCase (show i) (pemWriteBS p @=? BC.pack bs)
 testDecodingMultiple = testCase ("multiple pems") (pemParseBS content @=? Right expected)
   where expected = [ PEM { pemName = "marker", pemHeader = [], pemContent = B.replicate 12 3 }
                    , PEM { pemName = "marker2", pemHeader = [], pemContent = B.replicate 64 0 }
+                   , PEM { pemName = "marker3", pemHeader = [], pemContent = B.pack [0..255] }
                    ]
         content = BC.pack $ unlines
             [ "some text that is not related to PEM"
@@ -57,6 +58,26 @@ testDecodingMultiple = testCase ("multiple pems") (pemParseBS content @=? Right 
             , "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
             , "AAAAAAAAAAAAAAAAAAAAAA=="
             , "-----END marker2-----"
+            , "also test unaligned content, missing padding and whitespace"
+            , "-----BEGIN marker3-----"
+            , "                                             "
+            , " AAECAwQ  FBgcICQo                           "
+            , "  LDA0ODx  AREhMUFR                          "
+            , "   YXGBkaG  xwdHh8gI                         "
+            , "    SIjJCUm  JygpKiss                        "
+            , "     LS4vMDE  yMzQ1Njc  4OTo7PD0+P0BBQ       "
+            , "      kNERUZH  SElKS0xN  Tk9QUVJTVFVWV1      "
+            , "       hZWltcX  V5fYGFiY  2RlZmdoaWprbG1     "
+            , "        ub3Bxcn  N0dXZ3eH                    "
+            , "        l6e3x9f  n+AgYKDhI  WGh4iJiouMjY6P   "
+            , "       kJGSk5S  VlpeYmZqbnJ  2en6ChoqOkpaan  "
+            , "      qKmqq6y  trq+wsbKztLW2  t7i5uru8vb6/wM "
+            , "     HCw8TFx  sfIycrL zM3Oz9D                "
+            , "    R0tPU1d  bX2Nna2   9zd3t/g               "
+            , "   4eLj5OX  m5+jp6u     vs7e7v8              "
+            , "  PHy8/T1  9vf4+fr       7/P3+/w             "
+            , "                                             "
+            , "-----END marker3-----"
             , "and finally some trailing text."
             ]
 
