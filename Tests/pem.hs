@@ -4,7 +4,7 @@ import Control.Applicative
 import Control.Monad
 
 import qualified Data.ByteString.Char8 as BC
-import Test.QuickCheck hiding ((.&.))
+import Test.QuickCheck
 import Test.Framework (Test, defaultMain, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.Framework.Providers.HUnit (testCase)
@@ -18,7 +18,7 @@ main = defaultMain tests
 
 tests :: [Test]
 tests =
-    [ testGroup "units" $ testUnits
+    [ testGroup "units" testUnits
     , testDecodingMultiple
     , testUnmatchingNames
     , testProperty "marshall" testMarshall
@@ -40,7 +40,7 @@ testUnits = map (\(i, (p,bs)) -> testCase (show i) (pemWriteBS p @=? BC.pack bs)
                 , "-----END xxx-----"
                 ]
 
-testDecodingMultiple = testCase ("multiple pems") (pemParseBS content @=? Right expected)
+testDecodingMultiple = testCase "multiple pems" (pemParseBS content @=? Right expected)
   where expected = [ PEM { pemName = "marker", pemHeader = [], pemContent = B.replicate 12 3 }
                    , PEM { pemName = "marker2", pemHeader = [], pemContent = B.replicate 64 0 }
                    , PEM { pemName = "marker3", pemHeader = [], pemContent = B.pack [0..255] }

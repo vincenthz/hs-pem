@@ -20,7 +20,7 @@ import           Data.ByteArray.Encoding (Base(Base64), convertToBase)
 
 -- | write a PEM structure to a builder
 pemWrite :: PEM -> L.ByteString
-pemWrite pem = L.fromChunks $ ([begin,header]++section++[end])
+pemWrite pem = L.fromChunks ([begin,header]++section++[end])
     where begin   = B.concat ["-----BEGIN ", sectionName, "-----\n"]
           end     = B.concat ["-----END ", sectionName, "-----\n" ]
           section :: [ByteString]
@@ -28,7 +28,7 @@ pemWrite pem = L.fromChunks $ ([begin,header]++section++[end])
           header :: ByteString
           header  = if null $ pemHeader pem
                         then B.empty
-                        else B.concat ((concatMap toHeader (pemHeader pem)) ++ ["\n"])
+                        else B.concat (concatMap toHeader (pemHeader pem) ++ ["\n"])
           toHeader :: (String, ByteString) -> [ByteString]
           toHeader (k,v) = [ BC.pack k, ":", v, "\n" ]
           -- expect only ASCII. need to find a type to represent it.
