@@ -39,10 +39,12 @@ parseOnePEM = findPem
                              Nothing -> findPem ls
                              Just n  -> getPemName getPemHeaders n ls
         getPemName next n ls =
-            let (name, r) = L.break (== 0x2d) n in
+            let (name, r) = L.splitAt (L.length n - 5) n in
             case r of
-                "-----" -> next (LC.unpack name) ls
-                _       -> Left $ Just "invalid PEM delimiter found"
+                "-----" | valid name -> next (LC.unpack name) ls
+                _ -> Left $ Just "invalid PEM delimiter found"
+
+        valid name = L.null name || L.last name /= 0x2d
 
         getPemHeaders name lbs =
             case getPemHeaderLoop lbs of
