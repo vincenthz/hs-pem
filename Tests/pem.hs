@@ -21,6 +21,7 @@ tests =
     [ testGroup "units" $ testUnits
     , testDecodingMultiple
     , testUnmatchingNames
+    , testDecodingSpecialNames
     , testProperty "marshall" testMarshall
     ]
 
@@ -67,6 +68,20 @@ testUnmatchingNames = testCase "unmatching name" (let r = pemParseBS content in 
             [ "-----BEGIN marker-----"
             , "AAAA"
             , "-----END marker2-----"
+            ]
+
+testDecodingSpecialNames = testCase "special names" (Right expected @=? pemParseBS content)
+  where expected = [ PEM { pemName = "", pemHeader = [], pemContent = B.empty }
+                   , PEM { pemName = "space char", pemHeader = [], pemContent = B.empty }
+                   , PEM { pemName = "hyphen-minus", pemHeader = [], pemContent = B.empty }
+                   ]
+        content = BC.pack $ unlines
+            [ "-----BEGIN -----"
+            , "-----END -----"
+            , "-----BEGIN space char-----"
+            , "-----END space char-----"
+            , "-----BEGIN hyphen-minus-----"
+            , "-----END hyphen-minus-----"
             ]
 
 testMarshall pems = readPems == Right pems
