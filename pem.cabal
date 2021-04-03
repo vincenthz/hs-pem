@@ -1,7 +1,7 @@
 Name:                pem
 Version:             0.2.3
-Synopsis:            Privacy Enhanced Mail (PEM) format reader and writer.
-Description:         Privacy Enhanced Mail (PEM) format reader and writer. long description
+Synopsis:            Privacy Enhanced Mail (PEM) format reader and writer
+Description:         A library for reading and writing the Privacy Enhanced Mail (PEM) format.
 License:             BSD3
 License-file:        LICENSE
 Copyright:           Vincent Hanquez <vincent@snarc.org>
